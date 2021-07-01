@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:graphql="http://www.mulesoft.org/schema/mule/graphql"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/graphql http://www.mulesoft.org/schema/mule/graphql/current/mule-graphql.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<graphql:config name="Graphql_Config" doc:name="Graphql Config" doc:id="606b122c-f886-4463-a960-26403e3fa568" configName="mulegraphql" schemaLocation="schema/schema.graphqls" />
+	<flow name="console" doc:id="e946ef13-c006-4763-9a1c-5914e99302d1" >
+		<http:listener doc:name="Listener" doc:id="729d46c3-c5e7-4057-972a-5e1054417ff3" config-ref="HTTP_Listener_config" path="/graphiql"/>
+		<parse-template doc:name="Parse Template" doc:id="2fde0f80-54b7-48d2-a24e-b4480a46a107" location="index.html"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="81313653-976a-44de-9940-afe90e33f59b" />
+	</flow>
+	<flow name="graphql" doc:id="509484fd-d230-4cce-8e70-eb7589039012" >
+		<http:listener doc:name="Listener" doc:id="c5ea85c7-13b4-4a9b-8c3d-5e47138dfd08" config-ref="HTTP_Listener_config" path="/graphql"/>
+		<graphql:router doc:name="Router" doc:id="c1555ad9-b9c4-4978-8690-5086e8cc8590" config-ref="Graphql_Config" payload="#[payload]"/>
+	</flow>
+	<flow name="graphql:account" doc:id="20a1e8ce-6c67-4e00-b04d-3dcced8a5238" >
+		<graphql:graphql-field-resolver doc:name="Graphql field resolver" doc:id="746815c5-0f67-43c2-ab5a-bbdf5fe8ed67" config-ref="Graphql_Config" fieldName="account"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7e557698-be39-45da-ace7-9a561a187f74" message="#['Calling Account Resolver']"/>
+		<scripting:execute doc:name="Execute" doc:id="62091589-4771-4d32-93fa-27df2605251a" engine="groovy">
+			<scripting:code ><![CDATA[payload = ['params': attributes.getArguments()]]]></scripting:code>
+		</scripting:execute>
+		<http:request method="GET" doc:name="Request" doc:id="e89a1522-c2c4-4132-b2d0-3214a4329024" url="http://localhost:8081/accounts/{accountId}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"accountId" : payload.params.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="ab42c554-c899-4f48-8802-909f03105c7c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="graphql:transactions" doc:id="d922a418-1efb-4954-9dc3-0dad725b1227" >
+		<graphql:graphql-field-resolver doc:name="Graphql field resolver" doc:id="fd3a6c56-555c-460d-b57d-f7fc42b516a3" config-ref="Graphql_Config" fieldName="transactions"/>
+		<logger level="INFO" doc:name="Logger" doc:id="d9fbce2e-8c01-4b12-8676-2d26af2963c3" message="'Calling Transaction Resolver'"/>
+		<scripting:execute doc:name="Execute" doc:id="47b0dc35-28e4-4185-92ef-0168ad6d7856" engine="Groovy">
+			<scripting:code ><![CDATA[payload = ['params': attributes.getArguments(), 'source': attributes.getSource()]]]></scripting:code>
+		</scripting:execute>
+		<http:request method="GET" doc:name="Request" doc:id="df05503b-00c1-4736-b3d4-56f0501d9f43" url="http://localhost:8081/accounts/{accountId}/transactions">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"accountId" : payload.source.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="10ac0a79-8d66-4c64-b4b8-6828594380d5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="graphql:balances" doc:id="e31b1341-340d-4dc1-82d6-65a80afb2e55" >
+		<graphql:graphql-field-resolver doc:name="Graphql field resolver" doc:id="31206018-fffd-4311-ad7a-c6d9b1f8c396" config-ref="Graphql_Config" fieldName="balances"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c2a84761-620c-414c-9fec-b3f807d4b705" message="#['Calling Balances Resolver']"/>
+		<scripting:execute engine="Groovy" doc:name="Execute" doc:id="a99d1318-7aa2-4db5-9223-67a2854ef882" >
+			<scripting:code ><![CDATA[payload = ['source': attributes.getSource(),
+'params': attributes.getArguments()]]]></scripting:code>
+		</scripting:execute>
+		<logger level="INFO" doc:name="Logger" doc:id="e5ff65c8-1f76-458d-85ee-7ae967a78c33" message="#[payload]"/>
+		<http:request method="GET" doc:name="Request" doc:id="1859312f-18ad-4e4c-8ea7-05f27417e36d" url="http://localhost:8081/accounts/{accountId}/balances">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"accountId" : payload.source.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="91ee9dfc-ebf9-4126-be3f-837eeb1a8a15" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a6237d2d-2dd2-4cc1-a16a-ad1fb6ee099a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="accounts-rest-apiFlow" doc:id="c704cbca-5f40-40ac-a3ba-4f2ed3e363a6" >
+		<http:listener doc:name="Listener" doc:id="10aa94dd-66d6-4340-b6e1-7ac1bc21e1d3" path="/accounts/{accountId}" config-ref="HTTP_Listener_config"/>
+		<file:read doc:name="Read" doc:id="21756e0b-7c0f-4290-a8b6-0d2e4d66a401" path="C:\Users\Niraj\AnypointStudio\studio-workspace\mule-graphql-test-project\src\main\resources\accounts.json"/>
+	</flow>
+	<flow name="accounts-rest-apiFlow1" doc:id="c5b27ad6-a55b-4fbb-8226-9a8412e7ed4d" >
+		<http:listener doc:name="Listener" doc:id="53bf8829-3801-4bd1-b1db-015308a490fb" path="/accounts/{accountId}/balances" config-ref="HTTP_Listener_config"/>
+		<file:read doc:name="Read" doc:id="80be3959-e6a7-482e-b0e5-8bdcf060be63" path="C:\Users\Niraj\AnypointStudio\studio-workspace\mule-graphql-test-project\src\main\resources\balances.json"/>
+	</flow>
+	<flow name="accounts-rest-apiFlow2" doc:id="9b893198-588d-48b4-ae25-72db0a81da3e" >
+		<http:listener doc:name="Listener" doc:id="6dbca3a7-468c-4a3f-a697-8c3f0994dfc8" path="/accounts/{accountId}/transactions" config-ref="HTTP_Listener_config"/>
+		<file:read doc:name="Read" doc:id="6e93ddb8-3d2e-41eb-982d-81522b16a894" path="C:\Users\Niraj\AnypointStudio\studio-workspace\mule-graphql-test-project\src\main\resources\transaction.json"/>
+	</flow>
+</mule>
